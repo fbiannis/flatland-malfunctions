@@ -1,0 +1,7 @@
+asp/__pycache__/
+modules/__pycache__/
+envs/
+tmp/
+output/
+.vscode/
+tmp/frames/flatland_frame_0000.png
