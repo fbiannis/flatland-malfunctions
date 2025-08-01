@@ -1,3 +1,5 @@
+from clingo import Control, Model
+
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_env import RailEnvActions
 from flatland.utils.rendertools import RenderTool, AgentRenderVariant
@@ -40,6 +42,7 @@ def convert_to_clingo(env) -> str:
         
     return(clingo_str)
 
+
 def convert_formers_to_clingo(actions) -> str:
     # change back to the clingo names
     mapping = {RailEnvActions.MOVE_FORWARD:"move_forward", RailEnvActions.MOVE_RIGHT:"move_right", RailEnvActions.MOVE_LEFT:"move_left", RailEnvActions.STOP_MOVING:"wait"}
@@ -56,15 +59,12 @@ def convert_formers_to_clingo(actions) -> str:
     return(facts)
 
 
-def convert_malfunctions_to_clingo(malfs, timestep) -> str:
-    #mapping = {RailEnvActions.MOVE_FORWARD:"move_forward", RailEnvActions.MOVE_RIGHT:"move_right", RailEnvActions.MOVE_LEFT:"move_left", RailEnvActions.STOP_MOVING:"wait"}
+def convert_malfunctions_to_clingo(malfunctions: set, timestep: int) -> str:
     facts = []
-    for m in malfs:
-        train, duration = m[0], m[1]
+    for malfunction in malfunctions:
+        train, duration = malfunction[0], malfunction[1]
         facts.append(f'malfunction({train},{duration},{timestep}).\n')
-        for t in range(timestep+1, timestep+1+m[1]): # remove: make sure this duration should be included (aka remove +1 or keep it?)
-            facts.append(f':- not action(train({train}),wait,{t}).\n') #remove: can this be a list of strings or should it be one long string?
-
+    
     return(facts)
 
 
@@ -83,9 +83,45 @@ def convert_futures_to_clingo(actions) -> str:
     
     return(facts)
 
+
 def convert_actions_to_flatland(actions) -> list:
     mapping = {"move_forward":RailEnvActions.MOVE_FORWARD, "move_right":RailEnvActions.MOVE_RIGHT, "move_left":RailEnvActions.MOVE_LEFT, "wait":RailEnvActions.STOP_MOVING}
     for index, dict in enumerate(actions):
         for key in dict.keys():
             actions[index][key] = mapping[actions[index][key]]
     return(actions)
+
+
+def convert_asp_actions_to_list(asp_actions: str) -> list:
+    """Converts a string of asp actions into a list, for use with flatland"""
+    actions_list = []
+    def action_model_to_list(model):
+        # Extract actions from the model
+        action_mapping = {
+            "move_left": RailEnvActions.MOVE_LEFT,
+            "move_forward": RailEnvActions.MOVE_FORWARD,
+            "move_right": RailEnvActions.MOVE_RIGHT,
+            "wait": RailEnvActions.STOP_MOVING,
+            "do_nothing": RailEnvActions.DO_NOTHING
+        }
+        for atom in model.symbols(shown=True):
+            if atom.name == "action":
+                train_id = int(str(atom.arguments[0].arguments[0]))
+                action_str = str(atom.arguments[1])
+                timestep = int(str(atom.arguments[2]))
+                # Ensure the actions_list is large enough
+                while len(actions_list) <= timestep:
+                    actions_list.append({})
+                actions_list[timestep][train_id] = action_mapping.get(action_str, RailEnvActions.DO_NOTHING)
+
+    ctl = Control()
+    ctl.add("base", [], asp_actions)
+    ctl.ground([("base", [])])
+    ctl.solve(on_model=action_model_to_list)
+    return actions_list
+
+def model_to_string(model: Model) -> str:
+    """
+    Converts a clingo Model object to a string of atoms.
+    """
+    return "".join(f"{str(atom)}.\n" for atom in model.symbols(shown=True))
