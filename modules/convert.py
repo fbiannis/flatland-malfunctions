@@ -43,52 +43,12 @@ def convert_to_clingo(env) -> str:
     return(clingo_str)
 
 
-def convert_formers_to_clingo(actions) -> str:
-    # change back to the clingo names
-    mapping = {RailEnvActions.MOVE_FORWARD:"move_forward", RailEnvActions.MOVE_RIGHT:"move_right", RailEnvActions.MOVE_LEFT:"move_left", RailEnvActions.STOP_MOVING:"wait"}
-    for index, dict in enumerate(actions):
-        for key in dict.keys():
-            actions[index][key] = mapping[actions[index][key]]
-
-    facts = []
-    # change from dictionary into facts
-    for index, dict in enumerate(actions):
-        for key in dict.keys():
-            facts.append(f':- not action(train({key}),{actions[index][key]},{index}).\n') #remove: can this be a list of strings or should it be one long string?
-    
-    return(facts)
-
-
 def convert_malfunctions_to_clingo(malfunctions: dict, timestep: int) -> str:
     facts = ""
     for train in malfunctions:
         duration = malfunctions[train]
         facts += f'malfunction({train},{duration},{timestep}).\n'
     return facts
-
-
-def convert_futures_to_clingo(actions) -> str:
-    # change back to the clingo names
-    mapping = {RailEnvActions.MOVE_FORWARD:"move_forward", RailEnvActions.MOVE_RIGHT:"move_right", RailEnvActions.MOVE_LEFT:"move_left", RailEnvActions.STOP_MOVING:"wait"}
-    for index, dict in enumerate(actions):
-        for key in dict.keys():
-            actions[index][key] = mapping[actions[index][key]]
-
-    facts = []
-    # change from dictionary into facts
-    for index, dict in enumerate(actions):
-        for key in dict.keys():
-            facts.append(f'planned_action(train({key}),{actions[index][key]},{index}).\n') #remove: can this be a list of strings or should it be one long string?
-    
-    return(facts)
-
-
-def convert_actions_to_flatland(actions) -> list:
-    mapping = {"move_forward":RailEnvActions.MOVE_FORWARD, "move_right":RailEnvActions.MOVE_RIGHT, "move_left":RailEnvActions.MOVE_LEFT, "wait":RailEnvActions.STOP_MOVING}
-    for index, dict in enumerate(actions):
-        for key in dict.keys():
-            actions[index][key] = mapping[actions[index][key]]
-    return(actions)
 
 
 def convert_asp_actions_to_list(asp_actions: str) -> list:
