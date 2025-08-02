@@ -1,14 +1,13 @@
 import clingo
+
+from collections.abc import Sequence
+
 from modules.asp_knowledge_base import AspKnowledgeBase
 from modules.environment_property_encodings import dependencies
 
 class PropertyAgent:
-    def __init__(self, asp_knowledge: list = None):
+    def __init__(self):
         self.ctl = clingo.Control()
-        if asp_knowledge is None:
-            return
-        for item in asp_knowledge:
-            self.ctl.add("base", [], item)
     
     def add(self, asp_knowledge: str):
         self.ctl.add("base", [], asp_knowledge)
@@ -46,7 +45,8 @@ class PropertyAgent:
         for encoding in encodings_to_load:
             self.ctl.load(encoding)
     
-    def _solve(self) -> list:
+    def _solve(self) -> Sequence:
+        result = []
         with self.ctl.solve(yield_ = True) as handle:
             for model in handle:
                 result = model.symbols(atoms = True)
