@@ -59,13 +59,12 @@ def convert_formers_to_clingo(actions) -> str:
     return(facts)
 
 
-def convert_malfunctions_to_clingo(malfunctions: set, timestep: int) -> str:
-    facts = []
-    for malfunction in malfunctions:
-        train, duration = malfunction[0], malfunction[1]
-        facts.append(f'malfunction({train},{duration},{timestep}).\n')
-    
-    return(facts)
+def convert_malfunctions_to_clingo(malfunctions: dict, timestep: int) -> str:
+    facts = ""
+    for train in malfunctions:
+        duration = malfunctions[train]
+        facts += f'malfunction({train},{duration},{timestep}).\n'
+    return facts
 
 
 def convert_futures_to_clingo(actions) -> str:
