@@ -6,7 +6,7 @@ class PropertyAgent:
     def __init__(self, asp_knowledge: list = None):
         self.ctl = clingo.Control()
         if asp_knowledge is None:
-            pass
+            return
         for item in asp_knowledge:
             self.ctl.add("base", [], item)
     
@@ -42,18 +42,18 @@ class PropertyAgent:
         return [atom for atom in atoms if atom.name in properties]
 
     def _add_property_encoding(self, property_encoding: str):
-        for encoding in self._get_encoding_with_dependencies(property_encoding):
+        encodings_to_load = self._get_encoding_with_dependencies(property_encoding)
+        for encoding in encodings_to_load:
             self.ctl.load(encoding)
     
     def _solve(self) -> list:
-        result = []
         with self.ctl.solve(yield_ = True) as handle:
             for model in handle:
                 result = model.symbols(atoms = True)
-                break  # Only take the first model
+                break  # Only take the first model...?
         return result
 
-    def _get_encoding_with_dependencies(encoding) -> list:
+    def _get_encoding_with_dependencies(self, encoding: str) -> list:
         encodings = []
         stack = [encoding]
         visited = set()
