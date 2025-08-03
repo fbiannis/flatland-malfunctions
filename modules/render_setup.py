@@ -30,4 +30,4 @@ class RenderSetup:
 
     def render_and_save_gif(self, timestamp: float):
         os.makedirs(f"output/{timestamp}", exist_ok=True)
-        imageio.mimsave(f"output/{timestamp}/animation.gif", self.images, format='GIF', loop=0, duration=240)
+        imageio.mimsave(f"output/{timestamp}/animation.gif", self.images, loop=0, duration=240)
