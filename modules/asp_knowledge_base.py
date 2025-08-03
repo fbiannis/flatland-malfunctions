@@ -30,11 +30,11 @@ class AspKnowledgeBase:
                 models.append(model_to_string(model))
         # Return just the first model. Is this good?
         return models[0]
-
-    def rebuild_asp_actions(self, timestep: int) -> str:
-        # TODO
-        pass
     
+    def build_new_solution(self, malfunctions: dict, method, timestep: int) -> str:
+        return method(self, malfunctions, timestep)
+
+
     def add_solution(self, solution: str):
         """Adds the provided ASP solution string to the list of solutions"""
         self.asp_solutions.append(solution)
