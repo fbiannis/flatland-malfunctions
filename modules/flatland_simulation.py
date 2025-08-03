@@ -1,7 +1,7 @@
 from flatland.envs.rail_env import RailEnv
 
 from modules.asp_knowledge_base import AspKnowledgeBase
-from modules.malfunction_handling import get_problematic_by_delta
+from modules.malfunction_handling import get_problematic_by_delta, resolve_by_added_waits
 from modules.convert import convert_asp_actions_to_list, convert_malfunctions_to_clingo
 
 class FlatlandSimulation:
@@ -35,7 +35,14 @@ class FlatlandSimulation:
         direction_map = {0:'n', 1:'e', 2:'s', 3:'w'}
 
         for agent in self.active_solution[self.timestep]:
-            self.logs.append(f"{agent};{self.timestep};{self.environment.agents[agent].position};{direction_map[self.environment.agents[agent].direction]};{state_map[self.environment.agents[agent].state]};{action_map[self.active_solution[self.timestep][agent]]}\n")
+            action = self.active_solution[self.timestep][agent]
+            action_value = action.value if hasattr(action, "value") else action
+            self.logs.append(
+                f"{agent};{self.timestep};{self.environment.agents[agent].position};"
+                f"{direction_map[self.environment.agents[agent].direction]};"
+                f"{state_map[self.environment.agents[agent].state]};"
+                f"{action_map[action_value]}\n"
+            )
 
     def _handle_malfunction(self, info: dict):
         new_malfunctions: dict = self._add_new_malfunctions(info)
@@ -44,16 +51,16 @@ class FlatlandSimulation:
             return
         asp_new_malfuntions: str = convert_malfunctions_to_clingo(new_malfunctions, self.timestep)
         if not self._check_malfunction_problematic(asp_new_malfuntions):
-            # TODO: Add waits for the malfunctioning train
-            return
-
-        new_solution = self.asp_knowledge.rebuild_asp_actions(self.timestep)
+            new_solution = self.asp_knowledge.build_new_solution(new_malfunctions, resolve_by_added_waits, self.timestep)
+        else:
+            new_solution = self.asp_knowledge.build_new_solution(new_malfunctions, resolve_by_added_waits, self.timestep)
+            
         self.asp_knowledge.add_solution(new_solution)
         self.active_solution = convert_asp_actions_to_list(new_solution)
 
     def _add_new_malfunctions(self, info: dict) -> dict:
         malfunctioning_info = info['malfunction']
-        existing_malfunctions = {malf[0] for malf in self.malfunctions}
+        existing_malfunctions = self.malfunctions
         new_malfunctions = {train: duration for train, duration in malfunctioning_info.items() if duration > 0 and train not in existing_malfunctions}
 
         for train, duration in new_malfunctions.items():
