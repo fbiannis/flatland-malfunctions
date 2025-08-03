@@ -20,9 +20,6 @@ class PropertyAgent:
         self.ctl.add("base", [], asp_knowledge_base.asp_environment)
         self.ctl.add("base", [], asp_knowledge_base.asp_solutions[-1])
 
-    def ground(self):
-        self.ctl.ground([("base",[])])
-
     def solve_for(self, properties: list):
         """
         Solves for the specified properties and returns the corresponding atoms.
@@ -37,6 +34,7 @@ class PropertyAgent:
             properties = [properties]
         for property in properties:
             self._add_property_encoding(f"asp/environment_property/{property}.lp")
+        self._ground()
         atoms = self._solve()
         return [atom for atom in atoms if atom.name in properties]
 
@@ -44,7 +42,10 @@ class PropertyAgent:
         encodings_to_load = self._get_encoding_with_dependencies(property_encoding)
         for encoding in encodings_to_load:
             self.ctl.load(encoding)
-    
+
+    def _ground(self):
+        self.ctl.ground([("base",[])])    
+
     def _solve(self) -> Sequence:
         result = []
         with self.ctl.solve(yield_ = True) as handle:
