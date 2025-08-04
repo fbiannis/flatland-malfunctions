@@ -44,6 +44,9 @@ def convert_to_clingo(env) -> str:
 
 
 def convert_malfunctions_to_clingo(malfunctions: dict, timestep: int) -> str:
+    """ Returns the string of input malfunctions dict as asp fact
+    
+    Format: \"malfunction(train, duration, timestep)\""""
     facts = ""
     for train in malfunctions:
         duration = malfunctions[train]
