@@ -23,7 +23,7 @@ cell_type((X,Y), "Switch_Left", 3) :- cell((X,Y), 17411).
 
 cell_type((X,Y), "Switch_Right", 0) :- cell((X,Y), 49186).
 cell_type((X,Y), "Switch_Right", 1) :- cell((X,Y), 5633).
-cell_type((X,Y), "Switch_Right", 2) :- cell((X,Y), 34854).
+cell_type((X,Y), "Switch_Right", 2) :- cell((X,Y), 34864).
 cell_type((X,Y), "Switch_Right", 3) :- cell((X,Y), 1097).
 
 cell_type((X,Y), "Diamond", 0) :- cell((X,Y), 33825).
