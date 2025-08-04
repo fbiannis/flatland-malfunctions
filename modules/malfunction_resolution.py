@@ -1,21 +1,9 @@
 import clingo
 
-from modules.property_agent import PropertyAgent
 from modules.asp_knowledge_base import AspKnowledgeBase
 
-def get_problematic_by_delta(asp_knowledge_base: AspKnowledgeBase, malfunctions: str) -> bool:
-    property_agent = PropertyAgent()
-    property_agent.add_asp_knowledge_base(asp_knowledge_base)
-    property_agent.add(malfunctions)
-
-    atoms = property_agent.solve_for(["delta_conflict_point","delta_conflict_point_edge"])
-    for atom in atoms:
-        if atom.arguments[2] == atom.arguments[3]: 
-            return True 
-    return False
-
-
 def resolve_by_added_waits(asp_knowledge_base: AspKnowledgeBase, malfunctions: dict, current_timestep: int) -> str:
+    # TODO: See if ActionAgent cannot be used
     actions = []
     ctl = clingo.Control()
     ctl.add("base", [], asp_knowledge_base.asp_solutions[-1])
@@ -59,3 +47,7 @@ def resolve_by_added_waits(asp_knowledge_base: AspKnowledgeBase, malfunctions: d
         result_lines.append(f"action(train({train_id}),{action_type},{timestep}).")
     
     return '\n'.join(result_lines) + '\n'
+
+def resolve_by_primary_encoding(asp_knowledge_base: AspKnowledgeBase, malfunctions: dict, current_timestep: int) -> str:
+    # TODO: Implement
+    pass

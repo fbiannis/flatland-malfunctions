@@ -1,7 +1,8 @@
 from flatland.envs.rail_env import RailEnv
 
 from modules.asp_knowledge_base import AspKnowledgeBase
-from modules.malfunction_handling import get_problematic_by_delta, resolve_by_added_waits
+from modules.malfunction_resolution import resolve_by_added_waits
+from modules.malfunction_problems import get_problematic_by_delta
 from modules.convert import convert_asp_actions_to_list, convert_malfunctions_to_clingo
 
 class FlatlandSimulation:
@@ -50,13 +51,14 @@ class FlatlandSimulation:
         if not new_malfunctions:
             return
         asp_new_malfuntions: str = convert_malfunctions_to_clingo(new_malfunctions, self.timestep)
-        if not self._check_malfunction_problematic(asp_new_malfuntions):
-            new_solution = self.asp_knowledge.build_new_solution(new_malfunctions, resolve_by_added_waits, self.timestep)
+        
+        if not self._check_malfunction_problematic(asp_new_malfuntions, get_problematic_by_delta):
+            new_asp_solution = self.asp_knowledge.build_new_solution(new_malfunctions, self.timestep, resolve_by_added_waits)
         else:
-            new_solution = self.asp_knowledge.build_new_solution(new_malfunctions, resolve_by_added_waits, self.timestep)
+            new_asp_solution = self.asp_knowledge.build_new_solution(new_malfunctions, self.timestep, resolve_by_added_waits)
             
-        self.asp_knowledge.add_solution(new_solution)
-        self.active_solution = convert_asp_actions_to_list(new_solution)
+        self.asp_knowledge.add_solution(new_asp_solution)
+        self.active_solution = convert_asp_actions_to_list(new_asp_solution)
 
     def _add_new_malfunctions(self, info: dict) -> dict:
         malfunctioning_info = info['malfunction']
@@ -77,5 +79,5 @@ class FlatlandSimulation:
         for agent in agents_to_remove:
             del self.malfunctions[agent]
 
-    def _check_malfunction_problematic(self, asp_new_malfuntions: str) -> bool:
-        return get_problematic_by_delta(self.asp_knowledge, asp_new_malfuntions)
+    def _check_malfunction_problematic(self, asp_new_malfuntions: str, method) -> bool:
+        return method(self.asp_knowledge, asp_new_malfuntions)
